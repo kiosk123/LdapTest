@@ -12,8 +12,12 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathFactory;
 
 import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
+import javax.xml.xpath.XPathExpression;
 import org.xml.sax.InputSource;
 
 import com.vitria.fc.directory.DirConfig;
@@ -73,6 +77,13 @@ public class LdapTest {
 		try {
 			builder = factory.newDocumentBuilder();
 			doc = builder.parse(new InputSource(new StringReader(str)));
+			doc.getDocumentElement().normalize();
+			//blank text node remove
+			XPathExpression xpath = XPathFactory.newInstance().newXPath().compile("//text()[normalize-space(.) = '']");
+			NodeList blankTextNodes = (NodeList) xpath.evaluate(doc, XPathConstants.NODESET);
+			for (int i = 0; i < blankTextNodes.getLength(); i++) {
+			     blankTextNodes.item(i).getParentNode().removeChild(blankTextNodes.item(i));
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw e;
@@ -120,7 +131,7 @@ public class LdapTest {
 			dirConfig.setAuthenticationPlugin(authPlugin[0], authPlugin[1]);
 			dirConfig.setAuthorizationPlugin(authorityPlugin[0],authorityPlugin[1]);
 			
-			ctx.rebind("cn=Config", dirConfig);
+			ctx.rebind("CN=Config", dirConfig);
 			System.out.println("success set securitymodel");
 			System.out.println("============================= vtsecuritymodel =============================");
 			String ret = getvtsecuritymodel();
